@@ -1,33 +1,59 @@
 // A page object will consist up of a url,
 
+async function testCrawler(input, expected) {
+  const promise = crawler(input);
+  const result = await promise;
+  
+  expect(result).to.eql(expected);
+}
+
 describe('crawler', function() {
-/*
+
   it('should return only one link on a page without links', function() {
-    var result = crawler('./spec/crawlPageTest/test1.html');
-    console.log(result);
-    var expected = ['./spec/crawlPageTest/test1.html'];
-    expect(result).to.eql(expected);
-  });*/
+    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test1.html';
+    var expected = ['http://127.0.0.1:8080/spec/crawlPageTest/test1.html'];
+    testCrawler(baseURL, expected);
+  });
 
   it('should return links with a depth greater than 1', function() {
-    var result = crawler('./spec/crawlPageTest/test2.html');
-    var expected = ['test2.html', 'test1.html', 'test3.html', 'test5.html', 'test4.html'];
-    console.log(result);
-    expect(result).to.eql(expected);
+
+    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test2.html';
+    var expected = [
+      'http://127.0.0.1:8080/spec/crawlPageTest/test2.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test1.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test3.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test5.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test4.html'
+    ];
+    testCrawler(baseURL, expected);
+
   });
-/*
+
   it('should handle case where there is a link to itself', function() {
-    var result = crawler('./spec/crawlPageTest/test6.html');
-    var expected = ['test6.html'];
-    expect(result).to.eql(expected);
+    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test6.html';
+    var expected = [
+      'http://127.0.0.1:8080/spec/crawlPageTest/test6.html'
+    ];
+    testCrawler(baseURL, expected);
   });
+
 
   it('should not click on external links', function() {
-    var result = crawler('./spec/crawlPageTest/test7.html');
-    var expected = ['test7.html', 'test1.html', 'test2.html', 'test3.html', 'test5.html', 'test4.html', 'test6.html', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'];
-    expect(result).to.eql(expected);
-  });
 
+    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test2.html';
+    var expected = [
+      'http://127.0.0.1:8080/spec/crawlPageTest/test7.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test1.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test2.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test3.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test5.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test4.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test6.html',
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    ];
+    testCrawler(baseURL, expected);
+  });
+/*
   // Config cases
   it('should correctly count number of script tags, distrinct attributes, and external links', function() {
     var result = crawler('./spec/crawlPageTest/test7.html', {countScriptTags: true, getDistinctAttributes: true, getExternalLinks: true});

@@ -60,7 +60,7 @@ var links = [];
   makeRequest();
 })();*/
 
-
+/*
 var crawler = async function(url) {
   var res = [];
 
@@ -126,16 +126,142 @@ var crawler = async function(url) {
       // console.log(links);
 
     })();
-    /*for (var i = 0; i < links.length; i++) {
+    for (var i = 0; i < links.length; i++) {
       console.log('a');
       var currentLink = './spec/crawlPageTest/' + links[x];
       if (!visited.has(currentLink)) {
         stack.push(currentLink);
         visited.add(currentLink);
       }
-    }*/
+    }
     await new Promise(r => setTimeout(r, 2000));
   }
   console.log('res', res);
   return res;
-};
+};*/
+
+/*
+async function crawlPage(currentURL) {
+  console.log('actively crawling: ' + currentURL);
+
+  const resp = await fetch(currentURL);
+
+  const pages = await resp.text();
+}
+
+var result = crawlPage('./spec/crawlPageTest/test2.html');
+console.log(result);*/
+
+function extractLinks(html, currentURL) {
+  const links = [];
+  const url = new URL(currentURL);
+
+  // Find all anchor tags and extract their href attribute
+  const hrefRegex = /href=["']([^"']+)["']/g;
+  let match;
+  while ((match = hrefRegex.exec(html)) !== null) {
+    const href = match[1];
+    const absoluteURL = new URL(href, currentURL).href;
+
+    // Only add the link if it's on the same domain and hasn't been seen before
+    if (absoluteURL.startsWith(url.origin) && !links.includes(absoluteURL)) {
+      links.push(absoluteURL);
+    }
+  }
+
+  return links;
+}
+
+
+async function crawlPage(baseURL) {
+  const stack = [baseURL];
+  const visited = new Set();
+
+  const res = [];
+  visited.add(baseURL);
+
+  while (stack.length > 0) {
+    var currentURL = stack.pop();
+
+    res.push(currentURL);
+
+    const resp = await fetch(currentURL);
+    const htmlBody = await resp.text();
+    const nextURLs = extractLinks(htmlBody, currentURL);
+
+
+    for (const nextURL of nextURLs) {
+      if (!visited.has(nextURL)) {
+        stack.push(nextURL);
+        visited.add(nextURL);
+      }
+    }
+  }
+  return res;
+}
+
+async function crawler(baseURL) {
+  const pages = await crawlPage(baseURL);
+
+  return pages;
+}
+
+/*
+
+  const baseURLObj = new URL(baseURL);
+  const currentURLObj = new URL(currentURL);
+
+  if (baseURLObj.hostname !== currentURLObj.hostname) {
+    return pages;
+  }
+
+  if (pages[currentURL] > 0) {
+    pages[currentURL]++;
+    return pages;
+  }
+
+  pages[currentURL] = 1;
+  console.log('actively crawling: ' + currentURL);
+
+  const resp = await fetch(currentURL);
+
+  const htmlBody = await resp.text();
+
+  const nextURLs = extractLinks(htmlBody, baseURL);
+
+  for (const nextURL of nextURLs) {
+    pages = await crawlPage(baseURL, nextURL, pages);
+  }
+  return pages;*/
+
+/*
+
+async function crawlPage(baseURL, currentURL, pages) {
+  const baseURLObj = new URL(baseURL);
+  const currentURLObj = new URL(currentURL);
+
+  if (baseURLObj.hostname !== currentURLObj.hostname) {
+    return pages;
+  }
+
+  if (pages[currentURL] > 0) {
+    pages[currentURL]++;
+    return pages;
+  }
+
+  pages[currentURL] = 1;
+  console.log('actively crawling: ' + currentURL);
+
+  const resp = await fetch(currentURL);
+
+  const htmlBody = await resp.text();
+
+  const nextURLs = extractLinks(htmlBody, baseURL);
+
+  for (const nextURL of nextURLs) {
+    pages = await crawlPage(baseURL, nextURL, pages);
+  }
+  return pages;
+}
+
+*/
