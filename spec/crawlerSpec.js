@@ -1,59 +1,70 @@
 // A page object will consist up of a url,
 
-async function testCrawler(input, expected) {
-  const promise = crawler(input);
-  const result = await promise;
-  
-  expect(result).to.eql(expected);
-}
-
 describe('crawler', function() {
 
-  it('should return only one link on a page without links', function() {
+  it('should return only one link on a page without links', async function () {
     var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test1.html';
     var expected = ['http://127.0.0.1:8080/spec/crawlPageTest/test1.html'];
-    testCrawler(baseURL, expected);
+
+    var result = await crawler(baseURL);
+
+    expect(result).to.eql(expected);
   });
 
-  it('should return links with a depth greater than 1', function() {
+  it('should return links that are deep', async function () {
 
-    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test2.html';
+    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test9.html';
     var expected = [
+      'http://127.0.0.1:8080/spec/crawlPageTest/test9.html',
       'http://127.0.0.1:8080/spec/crawlPageTest/test2.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test1.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test3.html',
       'http://127.0.0.1:8080/spec/crawlPageTest/test5.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test4.html'
+      'http://127.0.0.1:8080/spec/crawlPageTest/test4.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test3.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test1.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test8.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test6.html'
     ];
-    testCrawler(baseURL, expected);
+
+
+    var result = await crawler(baseURL);
+
+    console.log('BFS', result);
+    console.log(expected);
+
+    expect(result).to.eql(expected);
 
   });
 
-  it('should handle case where there is a link to itself', function() {
+  it('should handle case where there is a link to itself', async function () {
     var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test6.html';
     var expected = [
       'http://127.0.0.1:8080/spec/crawlPageTest/test6.html'
     ];
-    testCrawler(baseURL, expected);
+
+    var result = await crawler(baseURL);
+
+    expect(result).to.eql(expected);
   });
 
 
-  it('should not click on external links', function() {
+  it('should not click on external links', async function () {
 
-    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test2.html';
+    var baseURL = 'http://127.0.0.1:8080/spec/crawlPageTest/test7.html';
     var expected = [
       'http://127.0.0.1:8080/spec/crawlPageTest/test7.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test1.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test2.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test3.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test6.html',
       'http://127.0.0.1:8080/spec/crawlPageTest/test5.html',
       'http://127.0.0.1:8080/spec/crawlPageTest/test4.html',
-      'http://127.0.0.1:8080/spec/crawlPageTest/test6.html',
-      'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+      'http://127.0.0.1:8080/spec/crawlPageTest/test3.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test2.html',
+      'http://127.0.0.1:8080/spec/crawlPageTest/test1.html'
     ];
-    testCrawler(baseURL, expected);
+
+    var result = await crawler(baseURL);
+
+    expect(result).to.eql(expected);
   });
-/*
+
   // Config cases
   it('should correctly count number of script tags, distrinct attributes, and external links', function() {
     var result = crawler('./spec/crawlPageTest/test7.html', {countScriptTags: true, getDistinctAttributes: true, getExternalLinks: true});
@@ -106,6 +117,6 @@ describe('crawler', function() {
     var result = crawler('./spec/crawlPageTest/test7.html', {crawlBreadthFirst: true});
     var expected = ['test7.html', 'test1.html', 'test2.html', 'test3.html', 'test4.html', 'test5.html', 'test6.html', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'];
     expect(result).to.eql(expected);
-  });*/
+  });
 
 });
