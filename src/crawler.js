@@ -21,60 +21,88 @@ var sendRequest = function (method, url) {
 };
 
 var crawler = async function (url, config) {
-  var output = {};
+  var output = [];
 
   var config = config || {};
-  var isBreadthFirst = config.isBreadthFirst || false;
+  const isBreadthFirst = config.isBreadthFirst || false;
+  const countScriptTags = config.countScriptTags || false;
+  const getExternalLinks = config.getExternalLinks || false;
+  const limit = config.limit || 1000;
 
   var absoluteURL = new URL(url);
 
-  var stack = [url];
+  var stack = [[url, 0]];
   var visited = new Set();
   visited.add(url);
 
+  // Store an array so we can properly get order
   var res = [];
 
   while (stack.length > 0) {
-    let currentUrl;
-    if (!isBreadthFirst) {
-      currentUrl = stack.pop();
-    } else {
-      currentUrl = stack.shift();
-    }
+    let a = isBreadthFirst ? stack.shift() : stack.pop();
+    let currentUrl = a[0];
+    let level = a[1];
 
     if (!(currentUrl in output)) {
       output[currentUrl] = {};
     }
 
-
-    // Initialize the output properties
-    output[currentUrl].externalLinks = [];
-    output[currentUrl].numberOfScriptTags = 0;
-
-    const resp = await sendRequest('GET', currentUrl);
+    let resp;
+    try {
+      resp = await sendRequest('GET', currentUrl);
+    } catch {
+      continue;
+    }
     let links = [];
 
-    // console.log(currentUrl, absoluteURL.origin, currentUrl.startsWith(absoluteURL.origin));
     res.push(currentUrl);
 
     // Update number of script tags
     // httpResponse will add a script tag to the document
-    output[currentUrl].numberOfScriptTags += resp.querySelectorAll('script').length - 1;
+    if (countScriptTags) {
+      output[currentUrl].numberOfScriptTags = resp.querySelectorAll('script').length - 1;
+    }
+
+    // Initialize the output properties
+    if (getExternalLinks) {
+      output[currentUrl].externalLinks = [];
+    }
 
     // Get content
     _(resp.querySelectorAll('a[href]')).forEach(function (element) {
       links.push(element.href);
     });
+
+    if (level >= limit) {
+      continue;
+    }
+
+    // Loop to add the next links to the stack
     _(links).forEach(function (link) {
       if (!visited.has(link)) {
         if (link.startsWith(absoluteURL.origin)) {
           visited.add(link);
-          stack.push(link);
+          stack.push([link, level + 1]);
         } else {
-          output[currentUrl].externalLinks.push(link);
+          if (getExternalLinks) {
+            output[currentUrl].externalLinks.push(link);
+          }
         }
       }
     });
   }
-  return output;
+
+  if (!(getExternalLinks || countScriptTags)) {
+    return res;
+  }
+
+  var total = [];
+
+  _(res).each(function(current) {
+    var obj = output[current];
+    obj.url = current;
+    total.push(obj);
+  });
+
+  return total;
 };
